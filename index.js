@@ -34,6 +34,7 @@ async function run() {
 
         const blogsCollection = client.db('blogUser').collection('blogs');
         const usersCollection = client.db('blogUser').collection('users');
+        const archiveCollection = client.db('blogUser').collection('archive');
 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -48,11 +49,24 @@ async function run() {
             res.send({ result, token });
         });
 
+        // blogs api 
+        app.get('/blogs', verifyJWT, async (req, res) => {
+            const result = await blogsCollection.find().toArray();
+            res.send(result);
+        });
         app.post('/blogs', async (req, res) => {
             const blogs = req.body;
             const result = await blogsCollection.insertOne(blogs);
             res.send(result);
-        })
+        });
+
+        // archive api
+        app.post('/archive', verifyJWT, async (req, res) => {
+            const blog = req.body;
+            const result = await archiveCollection.insertOne(blog);
+            res.send(result);
+        });
+
     } finally {
 
     }
