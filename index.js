@@ -61,6 +61,10 @@ async function run() {
         });
 
         // archive api
+        app.get('/archive', verifyJWT, async (req, res) => {
+            const result = await archiveCollection.find().toArray();
+            res.send(result);
+        });
         app.post('/archive', verifyJWT, async (req, res) => {
             const blog = req.body;
             const result = await archiveCollection.insertOne(blog);
