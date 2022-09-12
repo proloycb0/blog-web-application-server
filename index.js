@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware 
 app.use(cors());
@@ -35,6 +35,7 @@ async function run() {
         const blogsCollection = client.db('blogUser').collection('blogs');
         const usersCollection = client.db('blogUser').collection('users');
         const archiveCollection = client.db('blogUser').collection('archive');
+        const trashCollection = client.db('blogUser').collection('trash');
 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -62,11 +63,21 @@ async function run() {
         });
         app.get('/blogs', verifyJWT, async (req, res) => {
             const result = await blogsCollection.find().toArray();
-            res.send(result);
+            const blogs = result.reverse();
+            res.send(blogs);
         });
         app.post('/blogs', async (req, res) => {
             const blogs = req.body;
             const result = await blogsCollection.insertOne(blogs);
+            res.send(result);
+        });
+
+        app.delete('/blogs/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const blogTrash = req.body;
+            const filter = { _id: ObjectId(id) };
+            const trash = await trashCollection.insertOne(blogTrash)
+            const result = await blogsCollection.deleteOne(filter);
             res.send(result);
         });
 
