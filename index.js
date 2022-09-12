@@ -37,6 +37,8 @@ async function run() {
         const archiveCollection = client.db('blogUser').collection('archive');
         const trashCollection = client.db('blogUser').collection('trash');
 
+        // user api
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -72,6 +74,18 @@ async function run() {
             res.send(result);
         });
 
+        app.put('/blog/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const blogs = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: blogs
+            }
+            const result = await blogsCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
         app.delete('/blogs/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const blogTrash = req.body;
@@ -89,6 +103,12 @@ async function run() {
         app.post('/archive', verifyJWT, async (req, res) => {
             const blog = req.body;
             const result = await archiveCollection.insertOne(blog);
+            res.send(result);
+        });
+
+        // trash api
+        app.get('/trash', verifyJWT, async (req, res) => {
+            const result = await trashCollection.find().toArray();
             res.send(result);
         });
 
