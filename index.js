@@ -70,6 +70,7 @@ async function run() {
         });
         app.post('/blogs', async (req, res) => {
             const blogs = req.body;
+            const trashDelete = await trashCollection.deleteOne(blogs)
             const result = await blogsCollection.insertOne(blogs);
             res.send(result);
         });
@@ -106,9 +107,23 @@ async function run() {
             res.send(result);
         });
 
+        app.delete('/archive/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await archiveCollection.deleteOne(filter);
+            res.send(result);
+        });
+
         // trash api
         app.get('/trash', verifyJWT, async (req, res) => {
             const result = await trashCollection.find().toArray();
+            res.send(result);
+        });
+
+        app.delete('/trash/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await trashCollection.deleteOne(filter);
             res.send(result);
         });
 
