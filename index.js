@@ -50,6 +50,16 @@ async function run() {
         });
 
         // blogs api 
+
+        app.get('/blog', verifyJWT, async (req, res) => {
+            const userEmail = req.query.userEmail;
+            const decodedEmail = req.decoded.email;
+            if (userEmail === decodedEmail) {
+                const query = { userEmail: userEmail };
+                const blogs = await blogsCollection.find(query).toArray();
+                res.send(blogs);
+            }
+        });
         app.get('/blogs', verifyJWT, async (req, res) => {
             const result = await blogsCollection.find().toArray();
             res.send(result);
