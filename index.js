@@ -63,11 +63,28 @@ async function run() {
                 res.send(blogs);
             }
         });
+
         app.get('/blogs', verifyJWT, async (req, res) => {
-            const result = await blogsCollection.find().toArray();
-            const blogs = result.reverse();
-            res.send(blogs);
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+
+            const query = {};
+            const cursor = blogsCollection.find(query);
+            let result;
+            if(page || size){
+                result = await cursor.skip(page*size).limit(size).toArray();
+            }
+            else{
+                result = await cursor.toArray();
+            }
+            
+            res.send(result);
         });
+        app.get('/blogCount', async (req, res) => {
+            const result = await blogsCollection.find().count();
+            res.send({result});
+        });
+        
         app.post('/blogs', async (req, res) => {
             const blogs = req.body;
             const trashDelete = await trashCollection.deleteOne(blogs)
