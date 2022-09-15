@@ -7,7 +7,9 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware 
-app.use(cors());
+app.use(cors({
+    origin: "https://kep-blogger-application.web.app"
+}));
 app.use(express.json());
 
 // connect mongodb
