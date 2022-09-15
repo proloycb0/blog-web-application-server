@@ -39,6 +39,19 @@ async function run() {
 
         // user api
 
+        app.get('/user', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const users = await usersCollection.find(query).toArray();
+                res.send(users);
+            }
+            else {
+                res.status(403).send({ message: 'forbidden access' })
+            }
+        });
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -50,6 +63,18 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
             res.send({ result, token });
+        });
+
+        app.put('/user/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const users = req.body;
+            const filter = { email: email };
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: users
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
         });
 
         // blogs api 
@@ -64,6 +89,7 @@ async function run() {
             }
         });
 
+
         app.get('/blogs', verifyJWT, async (req, res) => {
             const page = parseInt(req.query.page);
             const size = parseInt(req.query.size);
@@ -71,20 +97,20 @@ async function run() {
             const query = {};
             const cursor = blogsCollection.find(query);
             let result;
-            if(page || size){
-                result = await cursor.skip(page*size).limit(size).toArray();
+            if (page || size) {
+                result = await cursor.skip(page * size).limit(size).toArray();
             }
-            else{
+            else {
                 result = await cursor.toArray();
             }
-            
+
             res.send(result);
         });
         app.get('/blogCount', async (req, res) => {
             const result = await blogsCollection.find().count();
-            res.send({result});
+            res.send({ result });
         });
-        
+
         app.post('/blogs', async (req, res) => {
             const blogs = req.body;
             const trashDelete = await trashCollection.deleteOne(blogs)
@@ -115,8 +141,13 @@ async function run() {
 
         // archive api
         app.get('/archive', verifyJWT, async (req, res) => {
-            const result = await archiveCollection.find().toArray();
-            res.send(result);
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const result = await archiveCollection.find(query).toArray();
+                res.send(result);
+            }
         });
         app.post('/archive', verifyJWT, async (req, res) => {
             const blog = req.body;
@@ -133,8 +164,13 @@ async function run() {
 
         // trash api
         app.get('/trash', verifyJWT, async (req, res) => {
-            const result = await trashCollection.find().toArray();
-            res.send(result);
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const result = await trashCollection.find(query).toArray();
+                res.send(result);
+            }
         });
 
         app.delete('/trash/:id', verifyJWT, async (req, res) => {
